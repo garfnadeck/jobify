@@ -7,8 +7,9 @@ const createJob = async (req, res) => {
   if (!position || !company) {
     throw new BadRequestError("Please provide All Values");
   }
-
-  req.body.createBy = req.user;
+  req.body.createdBy = req.user.userId;
+  const job = await Job.create(req.body);
+  res.status(StatusCodes.CREATED).json({ job });
 };
 
 const deleteJob = async (req, res) => {
