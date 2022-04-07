@@ -21,6 +21,11 @@ import {
   UPDATE_USER_ERROR,
   HANDLE_CHANGE,
   CLEAR_VALUES,
+  CREATE_JOB_ERROR,
+  CREATE_JOB_BEGIN,
+  CREATE_JOB_SUCCESS,
+  GET_JOBS_BEGIN,
+  GET_JOBS_SUCCESS,
 } from "./actions";
 
 const token = localStorage.getItem("token");
@@ -45,15 +50,16 @@ const initialState = {
   jobType: "full-time",
   statusOptions: ["interview", "declined", "pending"],
   status: "pending",
+  jobs: [],
+  totalJobs: 0,
+  numOfPages: 1,
+  page: 1,
 };
 
 const AppContext = React.createContext();
 
 const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-
-  //Axios
-  // axios.defaults.headers.common["Authorization"] = `Bearer ${state.token}`;
 
   const authFetch = axios.create({
     baseURL: "/api/v1",
@@ -62,7 +68,7 @@ const AppProvider = ({ children }) => {
   //request
   authFetch.interceptors.request.use(
     (config) => {
-      // config.headers.common["Authorization"] = `Bearer ${state.token}`;
+      config.headers.common["Authorization"] = `Bearer ${state.token}`;
       return config;
     },
     (error) => {
@@ -221,6 +227,45 @@ const AppProvider = ({ children }) => {
     dispatch({ type: CLEAR_VALUES });
   };
 
+  const createJob = async () => {
+    dispatch({ type: CREATE_JOB_BEGIN });
+    try {
+      const { position, company, jobLocation, jobType, status } = state;
+      await authFetch.post("/jobs", {
+        position,
+        company,
+        jobLocation,
+        jobType,
+        status,
+      });
+      dispatch({ type: CREATE_JOB_SUCCESS });
+      dispatch({ type: CLEAR_VALUES });
+    } catch (error) {
+      if (error.response.status === 401) return;
+      dispatch({
+        type: CREATE_JOB_ERROR,
+        payload: { msg: error.response.data.msg },
+      });
+    }
+  };
+
+  const getJobs = async () => {
+    let url = `/jobs`;
+    dispatch({ type: GET_JOBS_BEGIN });
+    try {
+      const { data } = await authFetch(url);
+      const { jobs, totalJobs, numOfPages } = data;
+      dispatch({
+        type: GET_JOBS_SUCCESS,
+        payload: { jobs, totalJobs, numOfPages },
+      });
+    } catch (error) {
+      console.log(error.response);
+      //logoutUser()
+    }
+    clearAlert();
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -234,6 +279,8 @@ const AppProvider = ({ children }) => {
         updateUser,
         handleChange,
         clearValues,
+        createJob,
+        getJobs,
       }}
     >
       {children}
