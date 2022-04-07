@@ -15,6 +15,8 @@ import {
   UPDATE_USER_BEGIN,
   UPDATE_USER_SUCCESS,
   UPDATE_USER_ERROR,
+  HANDLE_CHANGE,
+  CLEAR_VALUES,
 } from "./actions";
 
 import { initialState } from "./appContext";
@@ -37,64 +39,6 @@ const reducer = (state, action) => {
       alertText: "",
     };
   }
-
-  // // REGISTER USER
-  // if (action.type === REGISTER_USER_BEGIN) {
-  //   return { ...state, isLoading: true };
-  // }
-
-  // if (action.type === REGISTER_USER_SUCCESS) {
-  //   return {
-  //     ...state,
-  //     isLoading: false,
-  //     token: action.payload.token,
-  //     user: action.payload.user,
-  //     userLocation: action.payload.userLocation,
-  //     jobLocation: action.payload.jobLocation,
-  //     showAlert: true,
-  //     alertType: "success",
-  //     alertText: "User Created! Redirecting",
-  //   };
-  // }
-
-  // if (action.type === REGISTER_USER_ERROR) {
-  //   return {
-  //     ...state,
-  //     isLoading: false,
-  //     showAlert: true,
-  //     alertType: "danger",
-  //     alertText: action.payload.msg,
-  //   };
-  // }
-
-  // // LOGIN USER
-  // if (action.type === LOGIN_USER_BEGIN) {
-  //   return { ...state, isLoading: true };
-  // }
-
-  // if (action.type === LOGIN_USER_SUCCESS) {
-  //   return {
-  //     ...state,
-  //     isLoading: false,
-  //     token: action.payload.token,
-  //     user: action.payload.user,
-  //     userLocation: action.payload.userLocation,
-  //     jobLocation: action.payload.jobLocation,
-  //     showAlert: true,
-  //     alertType: "success",
-  //     alertText: "Login Successful! Redirecting...",
-  //   };
-  // }
-
-  // if (action.type === LOGIN_USER_ERROR) {
-  //   return {
-  //     ...state,
-  //     isLoading: false,
-  //     showAlert: true,
-  //     alertType: "danger",
-  //     alertText: action.payload.msg,
-  //   };
-  // }
 
   // SETUP USER
   if (action.type === SETUP_USER_BEGIN) {
@@ -170,6 +114,28 @@ const reducer = (state, action) => {
       showAlert: true,
       alertType: "danger",
       alertText: action.payload.msg,
+    };
+  }
+
+  if (action.type === HANDLE_CHANGE) {
+    return {
+      ...state,
+      [action.payload.name]: action.payload.value,
+    };
+  }
+  if (action.type === CLEAR_VALUES) {
+    const initialState = {
+      isEditing: false,
+      editJobId: "",
+      position: "",
+      company: "",
+      jobLocation: state.userLocation || "",
+      jobType: "full-time",
+      status: "pending",
+    };
+    return {
+      ...state,
+      ...initialState,
     };
   }
 
