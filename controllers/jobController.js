@@ -1,6 +1,8 @@
+import mongoose from "mongoose";
 import Job from "../models/Jobs.js";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError, NotFoundError } from "../errors/index.js";
+import checkPermissions from "../utils/checkPermissions.js";
 
 const createJob = async (req, res) => {
   const { position, company } = req.body;
@@ -12,10 +14,6 @@ const createJob = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ job });
 };
 
-const deleteJob = async (req, res) => {
-  res.send("delete job");
-};
-
 const getAllJobs = async (req, res) => {
   const jobs = await Job.find({ createBy: req.user.userId });
 
@@ -25,11 +23,63 @@ const getAllJobs = async (req, res) => {
 };
 
 const updateJob = async (req, res) => {
-  res.send("updateJob job");
+  const { id: jobId } = req.params;
+  const { company, position } = req.body;
+  if (!position || !company) {
+    throw new BadRequestError("Please provide All Values");
+  }
+  const job = await Job.findOne({ _id: jobId });
+
+  //check permissions
+  checkPermissions(req.user, job.createdBy);
+
+  if (!job) {
+    throw new NotFoundError(`No job with id: ${jobId}`);
+  }
+  const updateJob = await Job.findOneAndUpdate({ _id: jobId }, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  await job.save();
+  res.status(StatusCodes.OK).json({ job });
+};
+
+const deleteJob = async (req, res) => {
+  const { id: jobId } = req.params;
+
+  const job = await Job.findOne({ _id: jobId });
+
+  if (!job) {
+    throw new CustomError.NotFoundError(`No job with id: ${jobId}`);
+  }
+
+  checkPermissions(req.user, job.createdBy);
+
+  await job.remove();
+  res.status(StatusCodes.OK).json({ msg: "Success! Job removed" });
 };
 
 const showStats = async (req, res) => {
-  res.send("showStats job");
+  let stats = await Job.aggregate([
+    { $match: { createdBy: mongoose.Types.ObjectId(req.user.userId) } },
+    { $group: { _id: "$status", count: { $sum: 1 } } },
+  ]);
+  stats = stats.reduce((acc, curr) => {
+    const { _id: title, count } = curr;
+    acc[title] = count;
+    return acc;
+  }, {});
+
+  const defaultStats = {
+    pending: stats.pending || 0,
+    interview: stats.interview || 0,
+    declined: stats.declined || 0,
+  };
+
+  let monthlyApplications = [];
+
+  res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications });
 };
 
 export { createJob, deleteJob, getAllJobs, updateJob, showStats };

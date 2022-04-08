@@ -26,6 +26,13 @@ import {
   CREATE_JOB_SUCCESS,
   GET_JOBS_BEGIN,
   GET_JOBS_SUCCESS,
+  SET_EDIT_JOB,
+  DELETE_JOB_BEGIN,
+  EDIT_JOB_BEGIN,
+  EDIT_JOB_SUCCESS,
+  EDIT_JOB_ERROR,
+  SHOW_STATS_SUCCESS,
+  SHOW_STATS_BEGIN,
 } from "./actions";
 
 const token = localStorage.getItem("token");
@@ -54,6 +61,8 @@ const initialState = {
   totalJobs: 0,
   numOfPages: 1,
   page: 1,
+  stats: {},
+  monthlyApplication: [],
 };
 
 const AppContext = React.createContext();
@@ -267,10 +276,57 @@ const AppProvider = ({ children }) => {
   };
 
   const setEditJob = (id) => {
-    console.log(`set edit job: ${id}`);
+    dispatch({ type: SET_EDIT_JOB, payload: { id } });
   };
-  const deleteJob = (id) => {
-    console.log(`delete job: ${id}`);
+
+  const editJob = async () => {
+    dispatch({ type: EDIT_JOB_BEGIN });
+    try {
+      const { position, company, jobLocation, jobType, status } = state;
+      await authFetch.patch(`/jobs/${state.editJobId}`, {
+        company,
+        position,
+        jobLocation,
+        jobType,
+        status,
+      });
+      dispatch({ type: EDIT_JOB_SUCCESS });
+      dispatch({ type: CLEAR_VALUES });
+    } catch (error) {
+      if (error.response.status === 401)
+        return dispatch({
+          type: EDIT_JOB_ERROR,
+          payload: { msg: error.response.data.msg },
+        });
+    }
+  };
+
+  const deleteJob = async (jobId) => {
+    dispatch({ type: DELETE_JOB_BEGIN });
+    try {
+      await authFetch.delete(`/jobs/${jobId}`);
+      getJobs();
+    } catch (error) {
+      console.log(error.response);
+      // logoutUser()
+    }
+  };
+
+  const showStats = async (req, res) => {
+    dispatch({ type: SHOW_STATS_BEGIN });
+    try {
+      const { data } = await authFetch("/jobs/stats");
+      dispatch({
+        type: SHOW_STATS_SUCCESS,
+        payload: {
+          stats: data.defaultStats,
+          monthlyApplication: data.monthlyApplication,
+        },
+      });
+    } catch (error) {
+      console.log(error.response);
+      // logoutUser();
+    }
   };
 
   return (
@@ -290,6 +346,8 @@ const AppProvider = ({ children }) => {
         getJobs,
         setEditJob,
         deleteJob,
+        editJob,
+        showStats,
       }}
     >
       {children}
