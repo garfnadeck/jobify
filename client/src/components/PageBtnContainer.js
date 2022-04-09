@@ -2,7 +2,6 @@ import React from "react";
 import Wrapper from "../assets/wrappers/PageBtnContainer";
 import { useAppContext } from "../context/appContext";
 import { HiChevronDoubleLeft, HiChevronDoubleRight } from "react-icons/hi";
-import { CHANGE_PAGE } from "../context/actions";
 
 const PageBtnContainer = () => {
   const { numOfPages, page, changePage } = useAppContext();

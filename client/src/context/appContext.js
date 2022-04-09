@@ -98,10 +98,8 @@ const AppProvider = ({ children }) => {
       return response;
     },
     (error) => {
-      console.log(error.response);
       if (error.response.status === 401) {
         logoutUser();
-        console.log("AUTH ERROR");
       }
       return Promise.reject(error);
     }
@@ -136,7 +134,6 @@ const AppProvider = ({ children }) => {
     dispatch({ type: REGISTER_USER_BEGIN });
     try {
       const response = await axios.post("/api/v1/auth/register", currentUser);
-      // console.log(response);
       const { user, token, location } = response.data;
       dispatch({
         type: REGISTER_USER_SUCCESS,
@@ -145,7 +142,6 @@ const AppProvider = ({ children }) => {
       //local storage
       addUserToLocalStorage({ user, token, location });
     } catch (error) {
-      // console.log(error.response);
       dispatch({
         type: REGISTER_USER_ERROR,
         payload: { msg: error.response.data.msg },
@@ -266,9 +262,9 @@ const AppProvider = ({ children }) => {
   };
 
   const getJobs = async () => {
-    const { search, searchStatus, searchType, sort } = state;
+    const { page, search, searchStatus, searchType, sort } = state;
 
-    let url = `/jobs?status=${searchStatus}&jobType=${searchType}&${sort}`;
+    let url = `/jobs?page=${page}&status=${searchStatus}&jobType=${searchType}&${sort}`;
 
     if (search) {
       url = url + `&search=${search}`;
@@ -283,8 +279,7 @@ const AppProvider = ({ children }) => {
         payload: { jobs, totalJobs, numOfPages },
       });
     } catch (error) {
-      console.log(error.response);
-      //logoutUser()
+      logoutUser();
     }
     clearAlert();
   };
@@ -321,8 +316,7 @@ const AppProvider = ({ children }) => {
       await authFetch.delete(`/jobs/${jobId}`);
       getJobs();
     } catch (error) {
-      console.log(error.response);
-      // logoutUser()
+      logoutUser();
     }
   };
 
@@ -338,8 +332,7 @@ const AppProvider = ({ children }) => {
         },
       });
     } catch (error) {
-      console.log(error.response);
-      // logoutUser();
+      logoutUser();
     }
     clearAlert();
   };
