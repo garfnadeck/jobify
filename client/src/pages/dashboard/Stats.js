@@ -3,9 +3,11 @@ import { useAppContext } from "../../context/appContext";
 import { StatsContainer, Loading, ChartsContainer } from "../../components";
 
 const Stats = () => {
-  const { showStats, isLoading, monthlyApplication } = useAppContext();
+  const { showStats, isLoading, monthlyApplications } = useAppContext();
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    showStats();
+  }, []);
   if (isLoading) {
     return <Loading center />;
   }
@@ -13,7 +15,7 @@ const Stats = () => {
   return (
     <>
       <StatsContainer />
-      {monthlyApplication.length > 0 && <ChartsContainer />}
+      {monthlyApplications.length > 0 && <ChartsContainer />}
     </>
   );
 };
