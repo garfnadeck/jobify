@@ -1,7 +1,7 @@
 {
   "name": "jobify",
   "version": "1.0.0",
-  "description": "Project in Action - [Jobify](https://www.jobify.live/)",
+  "description": "Track Job Search",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -12,13 +12,13 @@
     "heroku-postbuild": "npm run install-client && npm run build-client",
     "server": "nodemon server --ignore client",
     "client": "npm start --prefix client",
-    "start": "node index.js"
+    "start": "concurrently --kill-others-on-fail \" npm run server\" \" npm run client\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^7.1.0",
+    "concurrently": "^6.4.0",
     "nodemon": "^2.0.15"
   },
   "dependencies": {
@@ -41,7 +41,6 @@
     "xss-clean": "^0.1.1"
   },
   "engines": {
-    "node": "16.14.0",
-    "npm": "8.3.1"
+    "node": "16.x"
   }
 }
